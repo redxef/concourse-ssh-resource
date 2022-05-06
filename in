@@ -1,1 +1,39 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
+
+set -e
+set -o pipefail
+
+. ./common
+
+cd "$1"
+ssh -F "$CONFIG_PATH" "$HOSTNAME" sh -s << EOF | tar x
+    files="$(get_version | jq -r .[].path)"
+    archive="\$(mktemp -t)"
+    files_path="\$(mktemp -t)"
+    head --bytes=10240 /dev/zero > "\$archive"
+    echo "\$files" > "\$files_path"
+    error=false
+    while read -r filepath; do
+        if [ ! -e "\$filepath" ]; then
+            echo "File not found on remote: \$filepath" >&2
+            error=true
+            break
+        fi
+        tar rf "\$archive" "\$filepath"
+    done < "\$files_path"
+    if ! "\$error"; then
+        cat "\$archive"
+    fi
+    rm "\$archive"
+    if "\$error"; then
+        exit 1
+    else:
+        exit 0
+    fi
+EOF
+
+jq -r tostring << EOF
+{
+    "version": $(get_version)
+}
+EOF
