@@ -45,6 +45,10 @@ write_config() {
     return 0
 }
 
+cleanup() {
+    rm -r /tmp/*
+}
+
 INPUT_PATH="$(save_input)"
 read_config "$INPUT_PATH"
 CONFIG_PATH="$(write_config)"
@@ -65,7 +69,7 @@ get_command() {
 }
 
 get_directory() {
-    jq -r '.params.directory // "/"' < "$INPUT_PATH"
+    jq -r '.params.directory // ""' < "$INPUT_PATH"
 }
 
 get_workdir() {

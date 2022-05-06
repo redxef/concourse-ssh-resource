@@ -1,7 +1,10 @@
 #!/usr/bin/env sh
 
 set -e
+set -o pipefail
 
+[ -e /opt/resource/common ] && cd /opt/resource/
 . ./common
 
 compute_version "$(fetch_file_infos get_files)"
+cleanup

@@ -3,6 +3,7 @@
 set -e
 set -o pipefail
 
+[ -e /opt/resource/common ] && cd /opt/resource/
 . ./common
 
 cd "$1"
@@ -37,3 +38,5 @@ jq -r tostring << EOF
     "version": $(get_version)
 }
 EOF
+
+cleanup

@@ -3,19 +3,24 @@
 set -e
 set -o pipefail
 
+[ -e /opt/resource/common ] && cd /opt/resource/
 . ./common
 
 cd "$1"
-files="$(find . | sed -e '/^\.$/d' -e 's|^./||')"
-tarfile="$(mktemp -tp /tmp)"
-remote_tarfile="$(mktemp -u)"
-tar -cf "$tarfile" ./*
-scp -F "$CONFIG_PATH" "$tarfile" "$HOSTNAME:$remote_tarfile"
+if [ -n "$(get_directory)" ]; then
+    files="$(find . | sed -e '/^\.$/d' -e 's|^./||')"
+    tarfile="$(mktemp -tp /tmp)"
+    remote_tarfile="$(mktemp -u)"
+    tar -cf "$tarfile" ./*
+    scp -F "$CONFIG_PATH" "$tarfile" "$HOSTNAME:$remote_tarfile"
+fi
 ssh -F "$CONFIG_PATH" "$HOSTNAME" sh -s << EOF
     set -e
-    cd "$(get_directory)"
-    tar xf "$remote_tarfile"
-    rm "$remote_tarfile"
+    if [ -n "$(get_directory)" ]; then
+        cd "$(get_directory)"
+        tar xf "$remote_tarfile"
+        rm "$remote_tarfile"
+    fi
     if [ "$(get_command)" = "null" ]; then
         exit 0
     fi
@@ -32,6 +37,11 @@ version="$(compute_version "$(fetch_file_infos get_files_for_new_version)")"
 
 jq -r tostring << EOF
 {
-    "version": $version
+    "version": {
+        "files": $version,
+        "command": true
+    }
 }
 EOF
+
+cleanup
