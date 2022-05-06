@@ -2,7 +2,9 @@
 
 set -e
 
+# shellcheck disable=SC2153
 directory="${DIRECTORY}"
+# shellcheck disable=SC2153
 files="${FILES}"
 
 if [ -z "$files" ]; then
@@ -14,7 +16,7 @@ fi
         echo "$directory/$file"
         if [ -e "$directory/$file" ]; then
             echo true
-            echo "$(stat --format=%Y "$directory/$file")"
+            stat --format=%Y "$directory/$file"
         else
             echo false
             echo "# --PLACEHOLDER--"
