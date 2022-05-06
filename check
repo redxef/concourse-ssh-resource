@@ -7,6 +7,12 @@ set -o pipefail
 . ./common
 
 version="$(compute_version "$(fetch_file_infos get_files)")"
+if [ "$(echo "$version" | jq -r tostring)" = "$(get_version | jq -r .files | jq -r tostring)" ]; then
+    get_version
+    cleanup
+    exit 0
+fi
+
 jq -r tostring << EOF
 {
     "version": {
@@ -16,3 +22,4 @@ jq -r tostring << EOF
 }
 EOF
 cleanup
+exit 0
