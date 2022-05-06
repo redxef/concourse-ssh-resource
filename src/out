@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+[ -e /opt/resource/common ] && cd /opt/resource/
+. ./common
+
+extract=true
+if [ -z "$FILES" ]; then
+    extract=false
+fi
+script="$(EXTRACT="$extract" envsubst "$(< scripts/put_files.vars)" < scripts/put_files.sh)"
+(
+    cd "$1"
+    pipe="$(tmpname)"
+    mkfifo "$pipe"
+    (
+        # shellcheck disable=SC2086
+        IFS=$'\n' tar c $FILES > "$pipe"
+    ) &
+    background_1=$!
+    ssh -F "$CONFIG_PATH" "$HOSTNAME" "sh -c '$script'" < "$pipe" &
+    background_2=$!
+    rm "$pipe"
+    wait $background_1 $background_2
+)
+computed_version="$(compute_version "$(fetch_file_meta)")"
+jq -r tostring << EOF
+    {
+        "version": $computed_version
+    }
+EOF
+cleanup
+
+exit 0

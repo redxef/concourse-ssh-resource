@@ -1,0 +1,158 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+CLEANUP_FILES=
+
+tmpname() {
+    mktemp -u
+}
+
+tmpfile() {
+    clean="$(mktemp -t)"
+    CLEANUP_FILES="$CLEANUP_FILES"$'\n'"$clean"
+    echo "$clean"
+    return 0
+}
+
+tmpdir() {
+    clean="$(mktemp -d)"
+    CLEANUP_FILES="$CLEANUP_FILES"$'\n'"$clean"
+    echo "$clean"
+    return 0
+}
+
+cleanup() {
+    if [ -n "$CLEANUP_FILES" ]; then
+        echo "$CLEANUP_FILES" | sed '//d' | xargs -d '\n' rm -r
+    fi
+    return 0
+}
+
+save_input() {
+    input_file="$(tmpfile)"
+    cat > "$input_file" <&0
+    echo "$input_file"
+    return 0
+}
+INPUT_PATH="$(save_input)"
+export INPUT_PATH
+
+get_hostname() {
+    jq -r .source.hostname < "$INPUT_PATH"
+}
+get_port() {
+    jq -r '.source.port // "22"' < "$INPUT_PATH"
+}
+get_user() {
+    jq -r .source.user < "$INPUT_PATH"
+}
+get_identity() {
+    jq -r .source.identity < "$INPUT_PATH"
+}
+get_hostkey() {
+    jq -r .source.hostkey < "$INPUT_PATH"
+}
+get_files() {
+    jq -r '.source.files // []' < "$INPUT_PATH" | jq -r '.[]'
+}
+get_directory() {
+    jq -r '.source.directory // "$HOME"' < "$INPUT_PATH" | sed 's|/$||'
+}
+get_workdir() {
+    jq -r '.params.workdir // "$HOME"' < "$INPUT_PATH" | sed 's|/$||'
+}
+get_version() {
+    jq -r .version < "$INPUT_PATH" | jq -r tostring
+}
+get_command() {
+    jq -r '.params.command // ["true"]' < "$INPUT_PATH" | jq -r '.[]' | tr '\n"' " '"
+}
+HOSTNAME="$(get_hostname)"
+PORT="$(get_port)"
+USER="$(get_user)"
+IDENTITY="$(get_identity)"
+HOSTKEY="$(get_hostkey)"
+FILES="$(get_files)"
+DIRECTORY="$(get_directory)"
+WORKDIR="$(get_workdir)"
+VERSION="$(get_version)"
+COMMAND="$(get_command)"
+
+export HOSTNAME
+export PORT
+export USER
+export IDENTITY
+export HOSTKEY
+export FILES
+export DIRECTORY
+export WORKDIR
+export VERSION
+export COMMAND
+
+write_config() {
+    config="$(tmpfile)"
+    identity_file="$(tmpfile)"
+    knownhosts_file="$(tmpfile)"
+
+    {
+        echo "host $HOSTNAME"
+        echo "    HostName $HOSTNAME"
+        echo "    Port $PORT"
+        echo "    User $USER"
+        echo "    IdentityFile $identity_file"
+        echo "    UserKnownHostsFile $knownhosts_file"
+    } > "$config"
+    echo "$IDENTITY" > "$identity_file"
+    echo "$HOSTKEY" > "$knownhosts_file"
+    chmod 600 "$identity_file" "$knownhosts_file" "$config"
+    echo "$config"
+    return 0
+}
+CONFIG_PATH="$(write_config)"
+export CONFIG_PATH
+
+fetch_file_meta() {
+    meta_file="$(tmpfile)"
+    script="$(envsubst "$(< scripts/get_file_meta.vars)" < scripts/get_file_meta.sh)"
+    # echo "Executing script on remote" >&2
+    # echo "$script" >&2
+    ssh -F "$CONFIG_PATH" "$HOSTNAME" "sh -c '$script'" > "$meta_file"
+    echo "$meta_file"
+    return 0
+}
+
+_compute_version() {
+    echo "["
+    line_file=
+    line_exists=
+    line_modify=
+    while read -r line; do
+        if [ -z "$line_file" ]; then
+            line_file="$line"
+        elif [ -z "$line_exists" ]; then
+            line_exists="$line"
+        elif [ -z "$line_modify" ]; then
+            line_modify="$line"
+        else
+            if "$line_exists"; then
+                echo '{"path":' "\"$line_file\"," '"modify":' "$line_modify" '}',
+            fi
+            line_file="$line"
+            line_exists=
+            line_modify=
+        fi
+    done < "$1"
+    if [ -n "$line_file" ] && [ -n "$line_exists" ] && [ -n "$line_modify" ] && "$line_exists"; then
+        echo '{"path":' "\"$line_file\"," '"modify":' "$line_modify" '}'
+    fi
+    echo "]"
+}
+
+compute_version() {
+jq -r tostring << EOF
+    {
+        "sha256sum": "$(_compute_version "$@" | jq -r tostring | sha256sum | tr -d ' -')"
+    }
+EOF
+}

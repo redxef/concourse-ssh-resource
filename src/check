@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+[ -e /opt/resource/common ] && cd /opt/resource/
+. ./common
+
+jq -r tostring << EOF
+[
+    $(compute_version "$(fetch_file_meta)")
+]
+EOF
+cleanup
+
+exit 0

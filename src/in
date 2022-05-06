@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+[ -e /opt/resource/common ] && cd /opt/resource/
+. ./common
+
+computed_version="$(compute_version "$(fetch_file_meta)")"
+if [ "$computed_version"  != "$VERSION" ]; then
+    echo "Versions do not match, aborting" >&2
+    echo "Requested version:" >&2
+    echo "$VERSION" >&2
+    echo "Have version:" >&2
+    echo "$computed_version" >&2
+    exit 1
+fi
+
+script="$(envsubst "$(< scripts/get_files.vars)" < "scripts/get_files.sh")"
+if [ -n "$FILES" ]; then
+    (
+        cd "$1"
+        ssh -F "$CONFIG_PATH" "$HOSTNAME" "sh -c '$script'" | tar x
+    )
+fi
+
+jq -r tostring << EOF
+    {
+        "version": $VERSION
+    }
+EOF
+cleanup
+
+exit 0
