@@ -6,5 +6,13 @@ set -o pipefail
 [ -e /opt/resource/common ] && cd /opt/resource/
 . ./common
 
-compute_version "$(fetch_file_infos get_files)"
+version="$(compute_version "$(fetch_file_infos get_files)")"
+jq -r tostring << EOF
+{
+    "version": {
+        "files": $version,
+        "time": $(date +%s)
+    }
+}
+EOF
 cleanup

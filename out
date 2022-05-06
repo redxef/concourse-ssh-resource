@@ -39,7 +39,7 @@ jq -r tostring << EOF
 {
     "version": {
         "files": $version,
-        "command": true
+        "time": $(date +%s)
     }
 }
 EOF
