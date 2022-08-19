@@ -56,10 +56,10 @@ jobs:
         username: ((docker.username))
         password: ((docker.password))
         repository: docker.io/redxef/concourse-ssh-resource
-        tag: latest
+        tag: edge
         additional_tags: docker-tags/tags.txt
         push: true
-        platform: x86_64
+        platform: amd64,i386,aarch64,arm,ppc64le,s390x
         context: .
         manual: false
       run:
