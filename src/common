@@ -68,6 +68,13 @@ get_version() {
 get_command() {
     jq -r '.params.command // ["true"]' < "$INPUT_PATH" | jq -r '.[]' | tr '\n"' " '"
 }
+get_stdout_file() {
+    jq -r '.params.stderr_file // "-"' | jq -r tostring
+}
+get_stdout_file() {
+    jq -r '.params.stdout_file // "-"' | jq -r tostring
+}
+
 HOSTNAME="$(get_hostname)"
 PORT="$(get_port)"
 USER="$(get_user)"
@@ -78,6 +85,8 @@ DIRECTORY="$(get_directory)"
 WORKDIR="$(get_workdir)"
 VERSION="$(get_version)"
 COMMAND="$(get_command)"
+STDERR_FILE="$(get_stderr_file)"
+STDOUT_FILE="$(get_stdout_file)"
 
 export HOSTNAME
 export PORT
@@ -89,6 +98,8 @@ export DIRECTORY
 export WORKDIR
 export VERSION
 export COMMAND
+export STDERR_FILE
+export STDOUT_FILE
 
 write_config() {
     config="$(tmpfile)"
