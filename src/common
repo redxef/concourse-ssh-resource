@@ -54,7 +54,7 @@ get_hostkey() {
     jq -r .source.hostkey < "$INPUT_PATH"
 }
 get_files() {
-    jq -r '.source.files // []' < "$INPUT_PATH" | jq -r '.[]'
+  jq -r '(.source.files // [])[]' < "$INPUT_PATH"
 }
 get_directory() {
     jq -r '.source.directory // "$HOME"' < "$INPUT_PATH" | sed 's|/$||'
@@ -66,7 +66,7 @@ get_version() {
     jq -r .version < "$INPUT_PATH" | jq -r tostring
 }
 get_command() {
-    jq -r '.params.command // ["true"]' < "$INPUT_PATH" | jq -r '.[]' | tr '\n"' " '"
+  jq -r '(.params.command // ["true"])[]' < "$INPUT_PATH" | tr '\n"' " '"
 }
 get_stderr_file() {
     jq -r '.params.stderr_file // "-"' < "$INPUT_PATH"
