@@ -68,7 +68,7 @@ get_version() {
 get_command() {
     jq -r '.params.command // ["true"]' < "$INPUT_PATH" | jq -r '.[]' | tr '\n"' " '"
 }
-get_stdout_file() {
+get_stderr_file() {
     jq -r '.params.stderr_file // "-"' | jq -r tostring
 }
 get_stdout_file() {
