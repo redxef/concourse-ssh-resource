@@ -56,3 +56,5 @@ Push all configured files to the server and run the specified command afterwards
 
 - workdir: *Optional*. *Default* `$HOME`. The remote directory to use as `cwd` when running commands.
 - command: *Optional*. *Default* `[true]`. A command to execute on the remote, given as list.
+- stderr_file: *Optional*. *Default* `-`. A file on the remote which should contain the stderr of the command. If `-` is given it will be redirected to stderr and available in concourse.
+- stdout_file: *Optional*. *Default* `-`. See `stderr_file` for more info. `stderr_file` and `stdout_file` can be the same.
