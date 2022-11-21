@@ -24,7 +24,7 @@ stdout_file="${STDOUT_FILE}"
   [ "$stderr_file" != "-" ] && truncate -s 0 "$stderr_file"
   [ "$stdout_file" != "-" ] && truncate -s 0 "$stdout_file"
 
-  # don't write anything to stdout, since that would get appended to the tar file
+  # dont write anything to stdout, since that would get appended to the tar file
   if [ "$stderr_file" = "-" ] && [ "$stdout_file" = "-" ]; then
     # redirect stdout to stderr
     ${COMMAND} 1>&2
