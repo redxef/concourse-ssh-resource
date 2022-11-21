@@ -14,17 +14,7 @@ echo "tar x script:" >&2
 echo "$script" >&2
 (
     cd "$1"
-    pipe="$(tmpname)"
-    mkfifo "$pipe"
-    (
-        # shellcheck disable=SC2086
-        IFS=$'\n' tar c $FILES > "$pipe"
-    ) &
-    background_1=$!
-    ssh -F "$CONFIG_PATH" "$HOSTNAME" "sh -c '$script'" < "$pipe" &
-    background_2=$!
-    rm "$pipe"
-    wait $background_1 $background_2
+    ( IFS=$'\n' tar c $FILES ) | ssh -F "$CONFIG_PATH" "$HOSTNAME" "sh -c '$script'"
 )
 computed_version="$(compute_version "$(fetch_file_meta)")"
 jq -r tostring << EOF
