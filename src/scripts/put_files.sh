@@ -27,16 +27,16 @@ stdout_file="${STDOUT_FILE}"
   # dont write anything to stdout, since that would get appended to the tar file
   if [ "$stderr_file" = "-" ] && [ "$stdout_file" = "-" ]; then
     # redirect stdout to stderr
-    ${COMMAND} 1>&2
+    ( ${COMMAND} ) 1>&2
   elif [ "$stderr_file" != "-" ] && [ "$stdout_file" = "-" ]; then
     # stderr to file, stdout to stderr
-    ( ${COMMAND} 2>"$stderr_file" ) 1>&2
+    ( ( ${COMMAND} ) 2>"$stderr_file" ) 1>&2
 
   elif [ "$stderr_file" = "-" ] && [ "$stdout_file" != "-" ]; then
     # stdout to file
-    ${COMMAND} 1>"$stdout_file"
+    ( ${COMMAND} ) 1>"$stdout_file"
   else
     # both files specified
-    ${COMMAND} 1>>"$stdout_file" 2>>"$stderr_file"
+    ( ${COMMAND} ) 1>>"$stdout_file" 2>>"$stderr_file"
   fi
 )
