@@ -69,10 +69,10 @@ get_command() {
     jq -r '.params.command // ["true"]' < "$INPUT_PATH" | jq -r '.[]' | tr '\n"' " '"
 }
 get_stderr_file() {
-    jq -r '.params.stderr_file // "-"' | jq -r tostring
+    jq -r '.params.stderr_file // "-"' < "$INPUT_PATH"
 }
 get_stdout_file() {
-    jq -r '.params.stdout_file // "-"' | jq -r tostring
+    jq -r '.params.stdout_file // "-"' < "$INPUT_PATH"
 }
 
 HOSTNAME="$(get_hostname)"
