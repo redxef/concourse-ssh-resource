@@ -6,8 +6,8 @@ set -e
 directory="${DIRECTORY}"
 # shellcheck disable=SC2153
 files="${FILES}"
-newline_str='
-'
+newline_str="
+"
 (
     cd "$directory"
     #shellcheck disable=SC2086
