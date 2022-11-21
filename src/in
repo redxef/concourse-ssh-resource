@@ -16,6 +16,9 @@ if [ "$computed_version"  != "$VERSION" ]; then
 fi
 
 script="$(envsubst "$(< scripts/get_files.vars)" < "scripts/get_files.sh")"
+echo "tar c script:" >&2
+echo "$script" >&2
+
 if [ -n "$FILES" ]; then
     (
         cd "$1"

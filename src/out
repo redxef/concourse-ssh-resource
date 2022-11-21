@@ -10,6 +10,8 @@ if [ -z "$FILES" ]; then
     extract=false
 fi
 script="$(EXTRACT="$extract" envsubst "$(< scripts/put_files.vars)" < scripts/put_files.sh)"
+echo "tar x script:" >&2
+echo "$script" >&2
 (
     cd "$1"
     pipe="$(tmpname)"
