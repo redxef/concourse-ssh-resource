@@ -37,6 +37,6 @@ stdout_file="${STDOUT_FILE}"
     ${COMMAND} 1>"$stdout_file"
   else
     # both files specified
-    ${COMMAND} 1>"$stdout_file" 2>"$stderr_file"
+    ${COMMAND} 1>>"$stdout_file" 2>>"$stderr_file"
   fi
 )
